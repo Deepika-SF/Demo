@@ -1,0 +1,182 @@
+Project 1: New India Travels Bus Management System
+1. Case Assignment and Routing
+Design and implement a Web-to-Case solution that captures customer issues related to cleanliness, rash driving, or staff behavior.
+Ensure cleanliness-related cases are routed to the appropriate bus depot based on the route, while rash driving or staff behavior cases are escalated directly to the CX team with an automated email notification.
+2. Driver Case Monitoring System
+Create an automation process to track the number ofcases associated with each driver.
+Implement a notification system that sends an email to the driver when more than 3 cases are registered, asking them to report to the nearest depot within 3 days with a justification.
+3. Suspension Workflow Automation
+Develop a workflow or automation to send a suspension letter to drivers who fail to respond within 3 days of receiving a case notification.
+Ensure their suspension status is updated in the systemand include a way to revoke suspension once justification is provided.
+4. Reports and Dashboards
+Build a dashboard that provides visibility into case statistics, driver performance, and depot efficiency.
+Include reports that show the number of cases by issue type, depot, and individual driver performance metrics.
+5. System Integration and Scalability
+Configure all necessary custom objects, fields, emailtemplates, and automation tools to deploy the system effectively.
+Ensure that the solution is scalable and can handle increased volumes of cases in the future.
+Pre-requisites:
+1. Standard Objects
+Case:
+Used for tracking customer issues.
+User:
+Represents users like CX team members, depot staff, and drivers.
+2. Custom Objects
+Bus Depot
+Fields:
+Depot Name (Text):
+Name of the depot.
+Location (Text or Geolocation):
+Depot location.
+Assigned Route (Lookup to Route):
+Links the depot to a specific bus route.
+Bus Driver
+Fields:
+Driver Name (Text):
+Full name of the driver.
+Contact Number (Phone):
+Driver’s phone number.
+Assigned Route (Lookup to Route):
+Links the driver to a specific route.
+Active Case Count (Roll-up Summary):
+Total number of active cases assigned to this driver.
+Last Justification Update (Date):
+Tracks the last date the driver submitted a justification.
+Suspension Status (Checkbox):
+Indicates whether the driver is currently suspended.
+Route
+Fields:
+Route Name (Text):
+Name/description of the route.
+Start Location (Text):
+Starting point of the route.
+End Location (Text):
+Endpoint of the route.
+Linked Depot (Lookup to Bus Depot):
+The depot associated with this route.
+3. Custom Fields on Case
+Issue Type (Picklist):
+Values include:
+Cleanliness
+Rash Driving
+Staff Behavior
+Route (Lookup to Route):
+Links the case to the associated bus route.
+Assigned Depot (Lookup to Bus Depot):
+The depot handling cleanliness-related cases.
+Driver (Lookup to Bus Driver):
+Links the case to the driver involved.
+
+answer
+
+**New India Travels Bus Management System Implementation Guide**
+
+## **Step 1: Case Assignment and Routing (Web-to-Case & Assignment Rules)**  
+
+### **1. Enable Web-to-Case**
+1. Go to **Setup** → Search for **Web-to-Case**.
+2. Enable Web-to-Case and configure settings like **email templates** for case submission confirmations.
+
+### **2. Create a Web-to-Case Form**
+1. In **Web-to-Case Settings**, click **Generate Web-to-Case HTML**.
+2. Select the fields required:  
+   - **Contact Name**  
+   - **Email**  
+   - **Issue Type (Picklist: Cleanliness, Rash Driving, Staff Behavior)**  
+   - **Route (Lookup to Route)**  
+   - **Details (Description field)**
+3. Copy the generated HTML and embed it into your website.
+
+### **3. Create Case Assignment Rules**
+1. Go to **Setup** → Search for **Case Assignment Rules**.
+2. Click **New**, name it **Bus Issue Routing**, and activate it.
+3. Click **New Rule Entry**:
+   - **Condition 1:** If **Issue Type = Cleanliness**, assign it to the **Bus Depot based on the Route**.
+   - **Condition 2:** If **Issue Type = Rash Driving or Staff Behavior**, assign it to the **CX Team**.
+4. Add an **Email Alert** for CX Team cases.
+   - Go to **Setup** → **Email Alerts** → **New Email Alert**.
+   - Select the **Case Object**, choose a template, and set recipients (CX Team members).
+
+---
+
+## **Step 2: Driver Case Monitoring System (Process Builder or Flow Automation)**  
+### **1. Create a Roll-Up Summary Field**
+1. Go to **Setup** → **Object Manager** → **Bus Driver**.
+2. Create a **Roll-Up Summary** field:  
+   - Name: **Active Case Count**  
+   - Summarized Object: **Case**  
+   - Filter Criteria: **Status = Open**.
+
+### **2. Build an Automation (Flow) to Notify Drivers**
+1. Go to **Setup** → Search for **Flow**.
+2. Create a **New Record-Triggered Flow**.
+3. Select **Case** as the triggering object (when created or updated).
+4. Add a **Decision Element**:
+   - If **Active Case Count > 3**, send an email.
+5. Use an **Action Element**:
+   - Select **Send Email** and use an email template informing the driver to report within **3 days**.
+
+---
+
+## **Step 3: Suspension Workflow Automation**  
+### **1. Create a Scheduled Flow for Suspension**  
+1. Go to **Setup** → **Flow** → **New Scheduled Flow**.
+2. Set it to run **daily** and check for drivers who haven’t responded in 3 days.
+3. Use **Get Records** to find:
+   - Cases where **Active Case Count > 3**.
+   - **Last Justification Update is empty or older than 3 days**.
+4. Add **Update Records**:
+   - Set **Suspension Status = True**.
+5. Use **Send Email**:
+   - Notify the driver about their suspension.
+
+### **2. Create a Reinstatement Process**
+1. Add a checkbox field **Suspension Revoked**.
+2. Create a **Record-Triggered Flow**:
+   - If the driver submits a justification, update **Suspension Status = False**.
+
+---
+
+## **Step 4: Reports and Dashboards**  
+### **1. Create Reports**  
+1. Go to **Reports** → Click **New Report**.
+2. Create reports for:
+   - **Cases by Issue Type** (Group by Cleanliness, Rash Driving, Staff Behavior).
+   - **Cases by Depot** (Filter by Assigned Depot).
+   - **Driver Performance** (Show Active Case Count per Driver).
+
+### **2. Build a Dashboard**
+1. Go to **Dashboards** → **New Dashboard**.
+2. Add:
+   - Case Volume by Type (Pie Chart).
+   - Driver Case Count (Bar Chart).
+   - Depot Efficiency (Case Resolution Time).
+
+---
+
+## **Step 5: System Integration & Scalability**  
+### **1. Custom Objects & Fields**
+- **Ensure all objects (Bus Depot, Bus Driver, Route) and fields are created.**
+- **Create Validation Rules**:
+  - Prevent drivers from being assigned more than one route.
+
+### **2. Automate Email Templates**
+- **Setup** → **Email Templates** → Create:
+  - Case Assignment Confirmation.
+  - Driver Notification (More than 3 cases).
+  - Suspension Letter.
+
+### **3. Ensure Scalability**
+- Use **Queues for Case Assignment** instead of individual users.
+- Set up **Omni-Channel Routing** to distribute workload.
+
+---
+
+## **Conclusion**
+By following these steps, the **Bus Management System** in Salesforce will:  
+✅ Automatically assign cases based on issue type.  
+✅ Notify drivers with high case counts.  
+✅ Suspend drivers who fail to respond.  
+✅ Provide dashboards for better monitoring.  
+
+Would you like help setting up specific Flows or Reports? 🚀
+
